@@ -1,152 +1,154 @@
-# ROS 2 绯荤粺鐘舵€佺洃鐪嬩笌 Qt 灞曠ず
+# ROS 2 系统状态监看与 Qt 展示
 
-鏈」鐩寘鍚袱涓?ROS 2 鍔熻兘鍖咃紝鐩爣鐜涓?**Ubuntu 22.04 + ROS 2 Humble**锛?
-- `status_interfaces`锛歚ament_cmake` 鎺ュ彛鍖咃紝瀹氫箟 `SystemStatus` 鑷畾涔夋秷鎭€?- `status_publisher`锛歚ament_python` 鍔熻兘鍖咃紝鍖呭惈绯荤粺鐘舵€侀噰闆嗐€佸彂甯冭妭鐐瑰拰鍩轰簬 PyQt5 鐨勭洃鍚獥鍙ｃ€?
-## 鍔熻兘
+本项目包含两个 ROS 2 功能包，目标环境为 **Ubuntu 22.04 + ROS 2 Humble**：
 
-`sys_status_pub` 鑺傜偣鎸夊浐瀹氶鐜囬噰闆嗕互涓嬩俊鎭苟鍙戝竷鍒?`system_status` 璇濋锛?
-| 瀛楁 | 绫诲瀷 | 鍚箟 |
+- `status_interfaces`：`ament_cmake` 接口包，定义 `SystemStatus` 自定义消息。
+- `status_publisher`：`ament_python` 功能包，包含系统状态采集、发布节点和基于 PyQt5 的监听窗口。
+
+## 功能
+
+`sys_status_pub` 节点按固定频率采集以下信息并发布到 `system_status` 话题：
+
+| 字段 | 类型 | 含义 |
 | --- | --- | --- |
-| `stamp` | `builtin_interfaces/Time` | 鏈潯鐘舵€佹暟鎹殑閲囬泦鏃堕棿 |
-| `hostname` | `string` | 涓绘満鍚?|
-| `cpu_percent` | `float32` | CPU 鎬讳娇鐢ㄧ巼锛屽崟浣?`%` |
-| `memory_percent` | `float32` | 鍐呭瓨浣跨敤鐜囷紝鍗曚綅 `%` |
-| `memory_total` | `float32` | 鍐呭瓨鎬诲ぇ灏忥紝鍗曚綅 byte |
-| `memory_available` | `float32` | 鍙敤鍐呭瓨锛屽崟浣?byte |
-| `net_sent` | `float32` | 绯荤粺鍚姩浠ユ潵绱鍙戦€佸瓧鑺傛暟锛屽崟浣?byte |
-| `net_recv` | `float32` | 绯荤粺鍚姩浠ユ潵绱鎺ユ敹瀛楄妭鏁帮紝鍗曚綅 byte |
+| `stamp` | `builtin_interfaces/Time` | 本条状态数据的采集时间 |
+| `hostname` | `string` | 主机名 |
+| `cpu_percent` | `float32` | CPU 总使用率，单位 `%` |
+| `memory_percent` | `float32` | 内存使用率，单位 `%` |
+| `memory_total` | `float32` | 内存总大小，单位 byte |
+| `memory_available` | `float32` | 可用内存，单位 byte |
+| `net_sent` | `float32` | 系统启动以来累计发送字节数，单位 byte |
+| `net_recv` | `float32` | 系统启动以来累计接收字节数，单位 byte |
 
-`status_gui` 鑺傜偣璁㈤槄鍚屼竴璇濋锛屽苟閫氳繃 Qt 绐楀彛鏄剧ず涓婅堪淇℃伅銆?
+`status_gui` 节点订阅同一话题，并通过 Qt 窗口显示上述信息。
 
-> `net_sent` 鍜?`net_recv` 浣跨敤鐨勬槸 `psutil.net_io_counters()` 杩斿洖鐨勭疮璁″€硷紝涓嶆槸鐬椂閫熺巼銆?
-## 椤圭洰缁撴瀯
+> `net_sent` 和 `net_recv` 使用的是 `psutil.net_io_counters()` 返回的累计值，不是瞬时速率。
+
+## 项目结构
 
 ```text
 .
-鈹溾攢鈹€ README.md
-鈹斺攢鈹€ src/
-    鈹溾攢鈹€ status_interfaces/                 # 娑堟伅鎺ュ彛鍖?(ament_cmake)
-    鈹?  鈹溾攢鈹€ CMakeLists.txt
-    鈹?  鈹溾攢鈹€ LICENSE
-    鈹?  鈹溾攢鈹€ package.xml
-    鈹?  鈹斺攢鈹€ msg/
-    鈹?      鈹斺攢鈹€ SystemStatus.msg
-    鈹斺攢鈹€ status_publisher/                  # Python 鍔熻兘鍖?(ament_python)
-        鈹溾攢鈹€ launch/
-        鈹?  鈹斺攢鈹€ status_monitor.launch.py
-        鈹溾攢鈹€ package.xml
-        鈹溾攢鈹€ resource/status_publisher
-        鈹溾攢鈹€ setup.cfg
-        鈹溾攢鈹€ setup.py
-        鈹溾攢鈹€ status_publisher/
-        鈹?  鈹溾攢鈹€ __init__.py
-        鈹?  鈹溾攢鈹€ status_gui.py              # Qt 璁㈤槄/鏄剧ず鑺傜偣
-        鈹?  鈹斺攢鈹€ sys_status_pub.py          # 鐘舵€侀噰闆?鍙戝竷鑺傜偣
-        鈹斺攢鈹€ test/
-            鈹溾攢鈹€ test_copyright.py
-            鈹溾攢鈹€ test_flake8.py
-            鈹斺攢鈹€ test_pep257.py
+├── README.md
+└── src/
+    ├── status_interfaces/                 # 消息接口包 (ament_cmake)
+    │   ├── CMakeLists.txt
+    │   ├── LICENSE
+    │   ├── package.xml
+    │   └── msg/
+    │       └── SystemStatus.msg
+    └── status_publisher/                  # Python 功能包 (ament_python)
+        ├── launch/
+        │   └── status_monitor.launch.py
+        ├── package.xml
+        ├── resource/status_publisher
+        ├── setup.cfg
+        ├── setup.py
+        ├── status_publisher/
+        │   ├── __init__.py
+        │   ├── status_gui.py              # Qt 订阅/显示节点
+        │   └── sys_status_pub.py          # 状态采集/发布节点
+        └── test/
+            ├── test_copyright.py
+            ├── test_flake8.py
+            └── test_pep257.py
 ```
 
-## 渚濊禆瀹夎
+## 依赖安装
 
-鍏堢‘淇濈郴缁熷凡缁忓畨瑁?ROS 2 Humble銆傜劧鍚庡湪 Ubuntu 缁堢瀹夎鏈」鐩繍琛屼緷璧栵細
+先确保系统已经安装 ROS 2 Humble。然后在 Ubuntu 终端安装本项目运行依赖：
 
 ```bash
 sudo apt update
 sudo apt install python3-psutil python3-pyqt5
 ```
 
-濡傛灉浣跨敤鏈€灏忓寲 ROS 2 瀹夎锛岃繕闇€瀹夎鏋勫缓鍜屾祴璇曞伐鍏凤細
+如果使用最小化 ROS 2 安装，还需安装构建和测试工具：
 
 ```bash
 sudo apt install python3-colcon-common-extensions python3-rosdep python3-pytest
 ```
 
-涔熷彲浠ュ湪 Python 铏氭嫙鐜涓畨瑁?`psutil` 鍜?`PyQt5`锛屼絾杩愯鑺傜偣鏃跺繀椤诲厛 `source` ROS 2 鍜屽綋鍓嶅伐浣滃尯鐨勭幆澧冭剼鏈€?
-## 缂栬瘧
+也可以在 Python 虚拟环境中安装 `psutil` 和 `PyQt5`，但运行节点时必须先 `source` ROS 2 和当前工作区的环境脚本。
 
-灏?`status_interfaces` 鍜?`status_publisher` 鏀惧叆 ROS 2 宸ヤ綔鍖虹殑 `src` 鐩綍锛?
+## 编译
+
+本项目仓库根目录本身就是 ROS 2 工作区，因为两个功能包都位于 `src` 目录。
+
 ```bash
-mkdir -p ~/ros2_ws/src
-cp -r src/status_interfaces src/status_publisher ~/ros2_ws/src/
-cd ~/ros2_ws
+cd ~/project
 rosdep install --from-paths src --ignore-src --rosdistro humble -r -y
 colcon build --symlink-install
 source install/setup.bash
 ```
 
-## 杩愯
+## 运行
 
-### 鏂瑰紡涓€锛氬垎鍒惎鍔ㄤ袱涓粓绔?
-缁堢 1锛屽惎鍔ㄦ暟鎹噰闆嗗拰鍙戝竷鑺傜偣锛?
+### 方式一：分别启动两个终端
+
+终端 1，启动数据采集和发布节点：
+
 ```bash
-source ~/ros2_ws/install/setup.bash
+source ~/project/install/setup.bash
 ros2 run status_publisher sys_status_pub
 ```
 
-缁堢 2锛屽惎鍔?Qt 鏄剧ず绐楀彛锛?
+终端 2，启动 Qt 显示窗口：
+
 ```bash
-source ~/ros2_ws/install/setup.bash
+source ~/project/install/setup.bash
 ros2 run status_publisher status_gui
 ```
 
-### 鏂瑰紡浜岋細浣跨敤 launch 鏂囦欢
+### 方式二：使用 launch 文件
 
 ```bash
-source ~/ros2_ws/install/setup.bash
+source ~/project/install/setup.bash
 ros2 launch status_publisher status_monitor.launch.py
 ```
 
-launch 鏂囦欢闇€瑕佸浘褰㈡闈㈢幆澧冦€傚鏋滃彧鏄噰闆嗗拰璁板綍娑堟伅锛屽彲浠ュ彧杩愯 `sys_status_pub`銆?
-## 妫€鏌ヤ笌楠岃瘉
+launch 文件需要图形桌面环境。如果只是采集和记录消息，可以只运行 `sys_status_pub`。
 
-鏌ョ湅鑷畾涔夋秷鎭畾涔夛細
+## 检查与验证
+
+查看自定义消息定义：
 
 ```bash
 ros2 interface show status_interfaces/msg/SystemStatus
 ```
 
-鏌ョ湅瀹炴椂璇濋锛?
+查看实时话题：
+
 ```bash
 ros2 topic echo /system_status
 ```
 
-淇敼鍙戝竷棰戠巼锛堥粯璁?`1.0` Hz锛夛細
+修改发布频率（默认 `1.0` Hz）：
 
 ```bash
 ros2 run status_publisher sys_status_pub --ros-args -p publish_rate:=2.0
 ```
 
-杩愯娴嬭瘯锛?
+运行测试：
+
 ```bash
 colcon test --packages-select status_publisher
 colcon test-result --verbose
 ```
 
-## 涓婁紶鍒?GitHub锛圥ublic锛?
-鍏堝湪鏈満瀹夎 Git锛屽苟纭繚宸茬粡鐧诲綍 GitHub銆傞」鐩牴鐩綍鍒濆鍖栧苟鎻愪氦锛?
+## 上传到 GitHub
+
+本项目的 GitHub 仓库地址：
+
+https://github.com/Shuaige979/project
+
+提交并推送更新：
+
 ```bash
-cd /path/to/this/project
-git init -b main
 git add .
-git commit -m "feat: add ROS 2 system status monitor"
-```
-
-浣跨敤 GitHub CLI 鍒涘缓 Public 浠撳簱骞舵帹閫侊細
-
-```bash
-gh repo create ros2-system-status-monitor --public --source=. --remote=origin --push
-```
-
-涔熷彲浠ュ厛鍦ㄧ綉椤靛垱寤?Public 绌轰粨搴擄紝鍐嶆墽琛岋細
-
-```bash
-git remote add origin https://github.com/<浣犵殑鐢ㄦ埛鍚?/ros2-system-status-monitor.git
-git push -u origin main
+git commit -m "docs: update README"
+git push
 ```
 
 ## License
 
 MIT
-
