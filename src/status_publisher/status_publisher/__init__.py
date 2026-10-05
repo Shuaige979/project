@@ -3,4 +3,3 @@
 # SPDX-License-Identifier: MIT
 
 """ROS 2 system status publisher and GUI package."""
-
